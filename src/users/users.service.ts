@@ -7,6 +7,7 @@ import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { encryptPassword } from "utils/password";
+import { Role } from "./constants/role.constant";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { User } from "./entities/user.entity";
@@ -19,6 +20,14 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
+  async findOne(id: string) {
+    const user = await this.userRepository.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`用户ID不存在: ${id}`);
+    }
+    return user;
+  }
+
   async findOneByPhone(phone: string) {
     const user = await this.userRepository.findOne({ phone });
     if (!user) {
@@ -28,20 +37,26 @@ export class UsersService {
   }
 
   async findOneAsPrivate(id: string) {
-    const user = await this.userRepository.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`用户ID不存在: ${id}`);
-    }
+    const user = await this.findOne(id);
     delete user.password;
     return user;
   }
 
   async findOneAsPublic(id: string) {
-    const user = await this.userRepository.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`用户ID不存在`);
+    const user = await this.findOne(id);
+    switch (user.role) {
+      case Role.customer:
+        delete user.balance;
+        delete user.password;
+        delete user.phone;
+        delete user.realName;
+        break;
+
+      default:
+        delete user.balance;
+        delete user.password;
+        break;
     }
-    delete user.password;
     return user;
   }
 
@@ -74,10 +89,7 @@ export class UsersService {
   }
 
   async remove(id: string) {
-    const user = await this.userRepository.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`用户ID不存在: ${id}`);
-    }
+    const user = await this.findOne(id);
     this.userRepository.remove(user);
     return {};
   }

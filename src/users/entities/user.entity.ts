@@ -1,4 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  DEFAULT_BALANCE,
+  DEFAULT_CREDIT,
+  DEFAULT_ROLE,
+} from "users/constants/default.constant";
 
 @Entity("users")
 export class User {
@@ -11,11 +16,14 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 0 })
+  @Column({ default: DEFAULT_BALANCE })
   balance: number;
 
-  @Column({ default: 3 })
+  @Column({ default: DEFAULT_CREDIT })
   credit: number;
+
+  @Column({ default: DEFAULT_ROLE })
+  role: number;
 
   @Column({ nullable: true })
   avatarUrl: string;

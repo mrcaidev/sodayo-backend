@@ -14,6 +14,10 @@ export class UpdateUserDto extends PartialType(
   credit: number;
 
   @IsOptional()
+  @IsNumber({}, { message: "角色必须为数字" })
+  role: number;
+
+  @IsOptional()
   @IsUrl({ message: "URL格式错误" })
   avatarUrl: string;
 
