@@ -8,8 +8,8 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { PaginationQueryDto } from "common/dto/pagination-query.dto";
 import { CreateOrderDto } from "./dto/create-order.dto";
+import { FindOrderDto } from "./dto/find-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { OrdersService } from "./orders.service";
 
@@ -18,8 +18,8 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  findAll(@Query() paginationQueryDto: PaginationQueryDto) {
-    return this.ordersService.findAll(paginationQueryDto);
+  findAll(@Query() findOrderDto: FindOrderDto) {
+    return this.ordersService.findAll(findOrderDto);
   }
 
   @Get(":id")

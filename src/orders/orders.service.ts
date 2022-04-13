@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { PaginationQueryDto } from "common/dto/pagination-query.dto";
 import { Repository } from "typeorm";
 import { UsersService } from "users/users.service";
 import { OrderStatus } from "./constants/order-status.constant";
 import { CreateOrderDto } from "./dto/create-order.dto";
+import { FindOrderDto } from "./dto/find-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { Order } from "./entities/order.entity";
 
@@ -16,12 +16,13 @@ export class OrdersService {
     private readonly usersService: UsersService,
   ) {}
 
-  async findAll(paginationQueryDto: PaginationQueryDto) {
-    const { limit, offset } = paginationQueryDto;
+  async findAll(findOrderDto: FindOrderDto) {
+    const { limit, offset } = findOrderDto;
     return this.orderRepository.find({
       relations: ["placedUser", "takenUser"],
       skip: offset,
       take: limit,
+      where: this.buildFindCondition(findOrderDto),
     });
   }
 
@@ -90,5 +91,17 @@ export class OrdersService {
 
   private async preloadUserById(id: string) {
     return this.usersService.findOneAsPublic(id);
+  }
+
+  private buildFindCondition(findOrderDto: FindOrderDto) {
+    const { type, status } = findOrderDto;
+    const where: { type?: typeof type; status?: typeof status } = {};
+    if (type !== undefined) {
+      where.type = type;
+    }
+    if (status !== undefined) {
+      where.status = status;
+    }
+    return where;
   }
 }
