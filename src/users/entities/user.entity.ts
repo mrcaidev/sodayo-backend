@@ -6,7 +6,7 @@ import {
   DEFAULT_ROLE,
 } from "users/constants/default.constant";
 
-@Entity()
+@Entity("users")
 export class User {
   @PrimaryGeneratedColumn("uuid")
   id: string;
