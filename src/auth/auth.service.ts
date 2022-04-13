@@ -1,4 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "users/entities/user.entity";
 import { UsersService } from "users/users.service";
@@ -11,25 +15,30 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async login(user: User) {
+    const { id } = user;
+    return this.jwtService.signAsync({ id });
+  }
+
+  async getProfile(id: string) {
+    const { password, ...rest } = await this.usersService.findOne(id);
+    return rest;
+  }
+
   async validateUser(phone: string, password: string) {
     // Find the user.
     const user = await this.usersService.findOneByPhone(phone);
     if (!user) {
-      return null;
+      throw new NotFoundException(`用户不存在: ${phone}`);
     }
 
     // Verify password.
     const { password: hashed, ...rest } = user;
     const verified = await verifyPassword(password, hashed);
     if (!verified) {
-      return null;
+      throw new UnauthorizedException(`密码错误`);
     }
 
     return rest;
-  }
-
-  async login(user: User) {
-    const payload = { id: user.id };
-    return this.jwtService.signAsync(payload);
   }
 }
