@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Order } from "orders/entities/order.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import {
   DEFAULT_BALANCE,
   DEFAULT_CREDIT,
@@ -33,4 +34,10 @@ export class User {
 
   @Column({ nullable: true })
   realName: string;
+
+  @OneToMany(() => Order, order => order.placedUser)
+  placedOrders: Order[];
+
+  @OneToMany(() => Order, order => order.takenUser)
+  takenOrders: Order[];
 }
