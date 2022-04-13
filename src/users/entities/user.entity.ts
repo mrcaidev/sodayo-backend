@@ -10,7 +10,7 @@ export class User {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column()
+  @Column({ update: false, unique: true })
   phone: string;
 
   @Column()
