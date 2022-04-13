@@ -13,7 +13,7 @@ export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    private usersService: UsersService,
+    private readonly usersService: UsersService,
   ) {}
 
   async findAll(paginationQueryDto: PaginationQueryDto) {

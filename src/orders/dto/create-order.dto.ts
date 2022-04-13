@@ -1,4 +1,5 @@
 import { IsNumber, IsString, IsUUID } from "class-validator";
+import { DEFAULT_UUID_VERSION } from "common/constants/default.constant";
 
 export class CreateOrderDto {
   @IsNumber({}, { message: "订单类型必须为数字" })
@@ -10,6 +11,6 @@ export class CreateOrderDto {
   @IsNumber({}, { message: "费用必须为数字" })
   cost: number;
 
-  @IsUUID(4, { message: "用户ID格式错误" })
+  @IsUUID(DEFAULT_UUID_VERSION, { message: "用户ID格式错误" })
   placedUserId: string;
 }
