@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { encryptPassword } from "utils/password";
@@ -15,25 +16,40 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
-  async findOne(id: string) {
-    const user = await this.userRepository.findOne(id);
+  async findOneByPhone(phone: string) {
+    const user = await this.userRepository.findOne({ phone });
     if (!user) {
-      throw new NotFoundException(`用户ID不存在: ${id}`);
+      throw new NotFoundException(`手机号不存在: ${phone}`);
     }
     return user;
   }
 
-  async findOneByPhone(phone: string) {
-    return this.userRepository.findOne({ phone });
+  async findOneAsPrivate(id: string) {
+    const user = await this.userRepository.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`用户ID不存在: ${id}`);
+    }
+    delete user.password;
+    return user;
+  }
+
+  async findOneAsPublic(id: string) {
+    const user = await this.userRepository.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`用户ID不存在`);
+    }
+    delete user.password;
+    return user;
   }
 
   async create(createUserDto: CreateUserDto) {
     const { phone, password } = createUserDto;
 
     // Ensure user does not exist.
-    const user = await this.findOneByPhone(phone);
+    const user = await this.userRepository.findOne({ phone });
     if (user) {
       throw new ConflictException(`手机号已注册: ${phone}`);
     }
@@ -42,8 +58,10 @@ export class UsersService {
     const hashed = await encryptPassword(password);
 
     // Save user.
-    this.userRepository.save({ phone, password: hashed });
-    return {};
+    const { id } = await this.userRepository.save({ phone, password: hashed });
+
+    // Create JWT token.
+    return this.jwtService.signAsync({ id });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

@@ -16,8 +16,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.usersService.findOne(id);
+  async findOneAsPublic(@Param("id") id: string) {
+    return this.usersService.findOneAsPublic(id);
   }
 
   @Post()

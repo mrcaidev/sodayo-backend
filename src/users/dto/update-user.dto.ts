@@ -1,27 +1,27 @@
-import { IsNumber, IsOptional, IsString, Length } from "class-validator";
+import { PartialType, PickType } from "@nestjs/mapped-types";
+import { IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
+import { CreateUserDto } from "./create-user.dto";
 
-export class UpdateUserDto {
+export class UpdateUserDto extends PartialType(
+  PickType(CreateUserDto, ["password"]),
+) {
   @IsOptional()
-  @Length(8, 20)
-  password: string;
-
-  @IsOptional()
-  @IsNumber()
+  @IsNumber({}, { message: "余额必须为数字" })
   balance: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsNumber({}, { message: "信誉必须为数字" })
   credit: number;
 
   @IsOptional()
-  @IsString()
+  @IsUrl({ message: "URL格式错误" })
   avatarUrl: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: "昵称必须为字符串" })
   nickName: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: "姓名必须为字符串" })
   realName: string;
 }
