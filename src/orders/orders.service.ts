@@ -62,6 +62,9 @@ export class OrdersService {
       takenTime: new Date(),
       takenUser,
     });
+    if (!order) {
+      throw new NotFoundException(`订单不存在: ${id}`);
+    }
     await this.orderRepository.save(order);
     return {};
   }
@@ -81,7 +84,7 @@ export class OrdersService {
 
   async remove(id: string) {
     const order = await this.findOne(id);
-    this.orderRepository.remove(order);
+    await this.orderRepository.remove(order);
     return {};
   }
 
