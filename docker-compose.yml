@@ -1,0 +1,43 @@
+version: '3.7'
+
+services:
+  main:
+    container_name: sodayo
+    build:
+      context: .
+      target: prod
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 3600:3600
+      - 9229:9229
+    command: npm run start:prod
+    env_file:
+      - .env
+    networks:
+      - sodayo-network
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: sodayo-postgres
+    image: postgres
+    networks:
+      - sodayo-network
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5433
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+networks:
+  sodayo-network:
+
+volumes:
+  pgdata:
