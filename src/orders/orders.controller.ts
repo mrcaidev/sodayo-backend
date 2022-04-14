@@ -7,10 +7,12 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
+import { JwtAuthGuard } from "auth/guards/jwt-auth.guard";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { FindOrderDto } from "./dto/find-order.dto";
-import { UpdateOrderDto } from "./dto/update-order.dto";
 import { OrdersService } from "./orders.service";
 
 @Controller("orders")
@@ -27,14 +29,18 @@ export class OrdersController {
     return this.ordersService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  create(@Req() req, @Body() createOrderDto: CreateOrderDto) {
+    const placedUserId = req.user.id as string;
+    return this.ordersService.create({ ...createOrderDto, placedUserId });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(id, updateOrderDto);
+  update(@Req() req, @Param("id") id: string) {
+    const userId = req.user.id as string;
+    return this.ordersService.update(id, { userId });
   }
 
   @Delete(":id")

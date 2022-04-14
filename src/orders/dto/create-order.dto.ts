@@ -10,7 +10,9 @@ export class CreateOrderDto {
 
   @IsNumber({}, { message: "费用必须为数字" })
   cost: number;
+}
 
+export class CreateOrderWithIdDto extends CreateOrderDto {
   @IsUUID(DEFAULT_UUID_VERSION, { message: "用户ID格式错误" })
   placedUserId: string;
 }

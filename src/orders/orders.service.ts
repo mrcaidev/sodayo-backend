@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UsersService } from "users/users.service";
 import { OrderStatus } from "./constants/order-status.constant";
-import { CreateOrderDto } from "./dto/create-order.dto";
+import { CreateOrderWithIdDto } from "./dto/create-order.dto";
 import { FindOrderDto } from "./dto/find-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { Order } from "./entities/order.entity";
@@ -36,20 +36,23 @@ export class OrdersService {
     return order;
   }
 
-  async create(createOrderDto: CreateOrderDto) {
-    const placedUser = await this.preloadUserById(createOrderDto.placedUserId);
+  async create(createOrderWithIdDto: CreateOrderWithIdDto) {
+    const placedUser = await this.preloadUserById(
+      createOrderWithIdDto.placedUserId,
+    );
     const order = this.orderRepository.create({
-      ...createOrderDto,
+      ...createOrderWithIdDto,
       placedUser,
     });
     await this.orderRepository.save(order);
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto) {
-    const { status, takenUserId } = updateOrderDto;
-    if (status === OrderStatus.taken) {
-      await this.take(id, takenUserId);
-    } else if (status === OrderStatus.finished) {
+    const { userId } = updateOrderDto;
+    const order = await this.orderRepository.findOne(id);
+    if (order.status === OrderStatus.placed) {
+      await this.take(id, userId);
+    } else if (order.status === OrderStatus.taken) {
       await this.finish(id);
     }
   }
