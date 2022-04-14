@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -61,7 +62,12 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { phone, password } = createUserDto;
+    const { phone, password, passwordConfirmation } = createUserDto;
+
+    // Ensure two password is the same.
+    if (password !== passwordConfirmation) {
+      throw new BadRequestException("两次密码不一致");
+    }
 
     // Ensure user does not exist.
     const user = await this.userRepository.findOne({ phone });
