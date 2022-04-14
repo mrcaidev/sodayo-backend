@@ -84,13 +84,11 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`用户ID不存在: ${id}`);
     }
-    this.userRepository.save(user);
-    return {};
+    await this.userRepository.save(user);
   }
 
   async remove(id: string) {
     const user = await this.findOne(id);
-    this.userRepository.remove(user);
-    return {};
+    await this.userRepository.remove(user);
   }
 }

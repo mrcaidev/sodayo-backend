@@ -42,17 +42,16 @@ export class OrdersService {
       ...createOrderDto,
       placedUser,
     });
-    return this.orderRepository.save(order);
+    await this.orderRepository.save(order);
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto) {
     const { status, takenUserId } = updateOrderDto;
     if (status === OrderStatus.taken) {
-      return this.take(id, takenUserId);
+      await this.take(id, takenUserId);
     } else if (status === OrderStatus.finished) {
-      return this.finish(id);
+      await this.finish(id);
     }
-    return {};
   }
 
   async take(id: string, takenUserId: string) {
@@ -67,7 +66,6 @@ export class OrdersService {
       throw new NotFoundException(`订单不存在: ${id}`);
     }
     await this.orderRepository.save(order);
-    return {};
   }
 
   async finish(id: string) {
@@ -80,13 +78,11 @@ export class OrdersService {
       throw new NotFoundException(`订单不存在: ${id}`);
     }
     await this.orderRepository.save(order);
-    return {};
   }
 
   async remove(id: string) {
     const order = await this.findOne(id);
     await this.orderRepository.remove(order);
-    return {};
   }
 
   private async preloadUserById(id: string) {
