@@ -5,5 +5,5 @@ export async function encryptPassword(password: string) {
 }
 
 export async function verifyPassword(password: string, hashed: string) {
-  return compare(password, hashed);
+  return compare(String(password), String(hashed));
 }
