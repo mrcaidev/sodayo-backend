@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { User } from "users/entities/user.entity";
 import { UsersService } from "users/users.service";
 import { OrderStatus } from "./constants/order-status.constant";
 import { CreateOrderWithIdDto } from "./dto/create-order.dto";
@@ -22,7 +23,7 @@ export class OrdersService {
       relations: ["placedUser", "takenUser"],
       skip: offset,
       take: limit,
-      where: this.buildFindCondition(findOrderDto),
+      where: await this.buildFindCondition(findOrderDto),
     });
   }
 
@@ -92,14 +93,25 @@ export class OrdersService {
     return this.usersService.findOneAsPublic(id);
   }
 
-  private buildFindCondition(findOrderDto: FindOrderDto) {
-    const { type, status } = findOrderDto;
-    const where: { type?: typeof type; status?: typeof status } = {};
+  private async buildFindCondition(findOrderDto: FindOrderDto) {
+    const { type, status, placedUserId, takenUserId } = findOrderDto;
+    const where: {
+      type?: typeof type;
+      status?: typeof status;
+      placedUser?: User;
+      takenUser?: User;
+    } = {};
     if (type !== undefined) {
       where.type = type;
     }
     if (status !== undefined) {
       where.status = status;
+    }
+    if (placedUserId !== undefined) {
+      where.placedUser = await this.preloadUserById(placedUserId);
+    }
+    if (takenUserId !== undefined) {
+      where.takenUser = await this.preloadUserById(takenUserId);
     }
     return where;
   }
