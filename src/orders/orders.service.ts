@@ -24,6 +24,10 @@ export class OrdersService {
       skip: offset,
       take: limit,
       where: await this.buildFindCondition(findOrderDto),
+      order: {
+        placedTime: "DESC",
+        takenTime: "DESC",
+      },
     });
   }
 
