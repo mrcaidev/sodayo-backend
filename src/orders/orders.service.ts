@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { User } from "users/entities/user.entity";
 import { UsersService } from "users/users.service";
 import { OrderStatus } from "./constants/order-status.constant";
-import { CreateOrderWithIdDto } from "./dto/create-order.dto";
+import { CreateOrderDto } from "./dto/create-order.dto";
 import { FindOrderDto } from "./dto/find-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { Order } from "./entities/order.entity";
@@ -38,47 +38,48 @@ export class OrdersService {
     return order;
   }
 
-  async create(createOrderWithIdDto: CreateOrderWithIdDto) {
-    const placedUser = await this.preloadUserById(
-      createOrderWithIdDto.placedUserId,
-    );
+  async create(createOrderDto: CreateOrderDto, userId: string) {
+    const placedUser = await this.preloadUserById(userId);
+    if (!placedUser) {
+      throw new NotFoundException(`用户不存在: ${userId}`);
+    }
+
     const order = this.orderRepository.create({
-      ...createOrderWithIdDto,
+      ...createOrderDto,
       placedUser,
     });
     await this.orderRepository.save(order);
   }
 
+  async enterNextStage(id: string, userId: string) {
+    const order = await this.findOne(id);
+    switch (order.status) {
+      case OrderStatus.placed: {
+        const takenUser = await this.preloadUserById(userId);
+        await this.orderRepository.save({
+          ...order,
+          status: OrderStatus.taken,
+          takenTime: new Date(),
+          takenUser,
+        });
+        return;
+      }
+      case OrderStatus.taken: {
+        await this.orderRepository.save({
+          ...order,
+          status: OrderStatus.finished,
+          finishedTime: new Date(),
+        });
+        return;
+      }
+
+      default:
+        return;
+    }
+  }
+
   async update(id: string, updateOrderDto: UpdateOrderDto) {
-    const { userId } = updateOrderDto;
-    const order = await this.orderRepository.findOne(id);
-    if (order.status === OrderStatus.placed) {
-      await this.take(id, userId);
-    } else if (order.status === OrderStatus.taken) {
-      await this.finish(id);
-    }
-  }
-
-  async take(id: string, takenUserId: string) {
-    const takenUser = await this.preloadUserById(takenUserId);
-    const order = await this.orderRepository.preload({
-      id,
-      status: OrderStatus.taken,
-      takenTime: new Date(),
-      takenUser,
-    });
-    if (!order) {
-      throw new NotFoundException(`订单不存在: ${id}`);
-    }
-    await this.orderRepository.save(order);
-  }
-
-  async finish(id: string) {
-    const order = await this.orderRepository.preload({
-      id,
-      status: OrderStatus.finished,
-      finishedTime: new Date(),
-    });
+    const order = await this.orderRepository.preload({ id, ...updateOrderDto });
     if (!order) {
       throw new NotFoundException(`订单不存在: ${id}`);
     }
