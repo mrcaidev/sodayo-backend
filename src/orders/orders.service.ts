@@ -19,7 +19,7 @@ export class OrdersService {
 
   async findAll(findOrderDto: FindOrderDto) {
     const { limit, offset } = findOrderDto;
-    return this.orderRepository.find({
+    return this.orderRepository.findAndCount({
       relations: ["placedUser", "takenUser"],
       skip: offset,
       take: limit,
