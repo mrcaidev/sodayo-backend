@@ -2,6 +2,8 @@ import {
   DEFAULT_ORDER_STATUS,
   DEFAULT_ORDER_TYPE,
 } from "orders/constants/default.constant";
+import { OrderStatus } from "orders/constants/order-status.constant";
+import { OrderType } from "orders/constants/order-type.constant";
 import {
   Column,
   CreateDateColumn,
@@ -18,15 +20,15 @@ export class Order {
   id: string;
 
   @Column({ default: DEFAULT_ORDER_TYPE })
-  type: number;
+  type: OrderType;
 
   @Column({ default: DEFAULT_ORDER_STATUS })
-  status: number;
+  status: OrderStatus;
 
   @Column()
   description: string;
 
-  @Column({ nullable: true })
+  @Column()
   cost: number;
 
   @CreateDateColumn()

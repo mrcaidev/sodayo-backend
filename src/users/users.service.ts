@@ -95,6 +95,9 @@ export class UsersService {
 
   async remove(id: string) {
     const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`用户ID不存在: ${id}`);
+    }
     await this.userRepository.remove(user);
   }
 }

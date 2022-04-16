@@ -1,9 +1,10 @@
-import { IsNumber, IsString, IsUUID } from "class-validator";
+import { IsEnum, IsNumber, IsString, IsUUID } from "class-validator";
 import { DEFAULT_UUID_VERSION } from "common/constants/default.constant";
+import { OrderType } from "orders/constants/order-type.constant";
 
 export class CreateOrderDto {
-  @IsNumber({}, { message: "订单类型必须为数字" })
-  type: number;
+  @IsEnum(OrderType, { message: "订单类型错误" })
+  type: OrderType;
 
   @IsString({ message: "描述必须为字符串" })
   description: string;

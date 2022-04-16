@@ -1,15 +1,17 @@
-import { IsNumber, IsOptional, IsUUID } from "class-validator";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
 import { DEFAULT_UUID_VERSION } from "common/constants/default.constant";
 import { PaginationQueryDto } from "common/dto/pagination-query.dto";
+import { OrderStatus } from "orders/constants/order-status.constant";
+import { OrderType } from "orders/constants/order-type.constant";
 
 export class FindOrderDto extends PaginationQueryDto {
   @IsOptional()
-  @IsNumber({}, { message: "类型必须为数字" })
-  type: number;
+  @IsEnum(OrderType, { message: "订单类型错误" })
+  type: OrderType;
 
   @IsOptional()
-  @IsNumber({}, { message: "状态必须为数字" })
-  status: number;
+  @IsEnum(OrderStatus, { message: "订单状态错误" })
+  status: OrderStatus;
 
   @IsOptional()
   @IsUUID(DEFAULT_UUID_VERSION, { message: "用户ID格式错误" })
