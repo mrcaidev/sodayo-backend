@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "app.controller";
 import { AppService } from "app.service";
@@ -15,18 +15,15 @@ import { UsersModule } from "./users/users.module";
       cache: true,
       load: [configuration],
     }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        type: "postgres",
-        host: configService.get<string>("db.host"),
-        port: configService.get<number>("db.port"),
-        database: configService.get<string>("db.name"),
-        username: configService.get<string>("db.user"),
-        password: configService.get<string>("db.password"),
-        autoLoadEntities: true,
-        synchronize: true,
-      }),
+    TypeOrmModule.forRoot({
+      type: "postgres",
+      host: process.env.DB_HOST || "localhost",
+      port: +process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || "",
+      username: process.env.DB_USER || "",
+      password: process.env.DB_PASSWORD || "",
+      autoLoadEntities: true,
+      synchronize: true,
     }),
     UsersModule,
     AuthModule,
