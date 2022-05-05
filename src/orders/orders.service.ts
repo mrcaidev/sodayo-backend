@@ -9,6 +9,9 @@ import { FindOrderDto } from "./dto/find-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { Order } from "./entities/order.entity";
 
+/**
+ * 订单服务层。
+ */
 @Injectable()
 export class OrdersService {
   constructor(
@@ -17,6 +20,11 @@ export class OrdersService {
     private readonly usersService: UsersService,
   ) {}
 
+  /**
+   * 获取订单列表。
+   * @param findOrderDto 查询订单的 DTO。
+   * @returns 符合要求的订单列表。
+   */
   async findAll(findOrderDto: FindOrderDto) {
     const { limit, offset } = findOrderDto;
     return this.orderRepository.findAndCount({
@@ -28,6 +36,11 @@ export class OrdersService {
     });
   }
 
+  /**
+   * 凭订单 ID 获取订单信息。
+   * @param id 订单 ID。
+   * @returns 订单信息。
+   */
   async findOne(id: string) {
     const order = await this.orderRepository.findOne(id, {
       relations: ["placedUser", "takenUser"],
@@ -38,63 +51,104 @@ export class OrdersService {
     return order;
   }
 
+  /**
+   * 创建订单。
+   * @param createOrderDto 创建订单的 DTO。
+   * @param userId 下单用户的 ID。
+   * @returns 创建的订单信息。
+   */
   async create(createOrderDto: CreateOrderDto, userId: string) {
+    // 找到下单用户。
     const placedUser = await this.preloadUserById(userId);
     if (!placedUser) {
       throw new NotFoundException(`用户不存在: ${userId}`);
     }
 
+    // 创建订单。
     const order = this.orderRepository.create({
       ...createOrderDto,
       placedUser,
     });
-    await this.orderRepository.save(order);
+    return this.orderRepository.save(order);
   }
 
+  /**
+   * 步进订单状态。
+   * @param id 要步进状态的订单 ID。
+   * @param userId 步进订单者 ID。
+   * @returns 步进后的订单信息。
+   */
   async enterNextStage(id: string, userId: string) {
+    // 找到该订单。
     const order = await this.findOne(id);
+
     switch (order.status) {
+      // 如果订单在待接单状态。
       case OrderStatus.placed: {
         const takenUser = await this.preloadUserById(userId);
-        await this.orderRepository.save({
+        const newOrder: Order = {
           ...order,
           status: OrderStatus.taken,
           takenTime: new Date(),
           takenUser,
-        });
-        return;
+        };
+        return this.orderRepository.save(newOrder);
       }
+
+      // 如果订单在已接单状态。
       case OrderStatus.taken: {
-        await this.orderRepository.save({
+        const newOrder: Order = {
           ...order,
           status: OrderStatus.finished,
           finishedTime: new Date(),
-        });
-        return;
+        };
+        return this.orderRepository.save(newOrder);
       }
 
+      // 如果在其它状态。
       default:
-        return;
+        return order;
     }
   }
 
+  /**
+   * 更新订单。
+   * @param id 要更新的订单的 ID。
+   * @param updateOrderDto 更新订单的 DTO。
+   * @returns 更新后的订单信息。
+   */
   async update(id: string, updateOrderDto: UpdateOrderDto) {
     const order = await this.orderRepository.preload({ id, ...updateOrderDto });
     if (!order) {
       throw new NotFoundException(`订单不存在: ${id}`);
     }
-    await this.orderRepository.save(order);
+    return this.orderRepository.save(order);
   }
 
+  /**
+   * 删除订单。
+   * @param id 要删除的订单 ID。
+   * @returns 删除的订单信息。
+   */
   async remove(id: string) {
     const order = await this.findOne(id);
-    await this.orderRepository.remove(order);
+    return this.orderRepository.remove(order);
   }
 
+  /**
+   * 凭 ID 获取用户公开信息。
+   * @param id 用户 ID。
+   * @returns 用户公开信息。
+   */
   private async preloadUserById(id: string) {
     return this.usersService.findOneAsPublic(id);
   }
 
+  /**
+   * 构建用于 ORM 查询的条件。
+   * @param findOrderDto 查询订单的 DTO。
+   * @returns 构建出的查询条件。
+   */
   private async buildFindCondition(findOrderDto: FindOrderDto) {
     const { type, status, placedUserId, takenUserId } = findOrderDto;
     const where: {

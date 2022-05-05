@@ -5,6 +5,9 @@ import { Order } from "./entities/order.entity";
 import { OrdersController } from "./orders.controller";
 import { OrdersService } from "./orders.service";
 
+/**
+ * 订单模块。
+ */
 @Module({
   imports: [UsersModule, TypeOrmModule.forFeature([Order])],
   controllers: [OrdersController],

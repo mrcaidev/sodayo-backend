@@ -1,32 +1,36 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "app.controller";
 import { AppService } from "app.service";
-import { configuration } from "config/configuration";
-import { AuthModule } from "./auth/auth.module";
+import { DbConfig, dbConfig } from "config/db.config";
+import { jwtConfig } from "config/jwt.config";
+import { UserModule } from "user/user.module";
 import { OrdersModule } from "./orders/orders.module";
 import { UsersModule } from "./users/users.module";
 
+/**
+ * 根模块。
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      load: [configuration],
+      load: [dbConfig, jwtConfig],
     }),
-    TypeOrmModule.forRoot({
-      type: "postgres",
-      host: process.env.DB_HOST || "localhost",
-      port: +process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || "",
-      username: process.env.DB_USER || "",
-      password: process.env.DB_PASSWORD || "",
-      autoLoadEntities: true,
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        ...configService.get<DbConfig>("db"),
+        type: "postgres",
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
     }),
+    UserModule,
     UsersModule,
-    AuthModule,
     OrdersModule,
   ],
   controllers: [AppController],
