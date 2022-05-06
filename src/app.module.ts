@@ -17,6 +17,10 @@ import { UsersModule } from "./users/users.module";
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
+      envFilePath:
+        process.env.NODE_ENV === "production"
+          ? ".env.production"
+          : ".env.development",
       load: [dbConfig, jwtConfig],
     }),
     TypeOrmModule.forRootAsync({
