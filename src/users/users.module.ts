@@ -13,6 +13,7 @@ import { UsersService } from "./users.service";
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
+      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>("jwt.secret"),
         signOptions: { expiresIn: "1d" },

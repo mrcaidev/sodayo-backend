@@ -20,7 +20,6 @@ import { UsersModule } from "./users/users.module";
       load: [dbConfig, jwtConfig],
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         ...configService.get<DbConfig>("db"),

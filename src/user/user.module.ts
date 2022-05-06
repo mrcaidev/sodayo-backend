@@ -16,6 +16,7 @@ import { UserService } from "./user.service";
     UsersModule,
     PassportModule,
     JwtModule.registerAsync({
+      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>("jwt.secret"),
         signOptions: { expiresIn: "1d" },
